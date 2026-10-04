@@ -1,0 +1,51 @@
+# One-command local stack: Postgres + API + web.
+# The sandbox runner images are built separately (`make runners`), which
+# `make demo` does for you before `docker compose up`.
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: codeguide
+      POSTGRES_PASSWORD: codeguide
+      POSTGRES_DB: codeguide
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U codeguide"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  api:
+    build:
+      context: ./backend
+      args:
+        # Must match the host docker socket's group so the non-root API user
+        # can launch sandbox containers. `make demo` computes it for you.
+        DOCKER_GID: ${DOCKER_GID:-999}
+    environment:
+      CODEGUIDE_DATABASE_URL: postgresql+asyncpg://codeguide:codeguide@db:5432/codeguide
+      CODEGUIDE_EXECUTION_BACKEND: docker
+      CODEGUIDE_CORS_ORIGINS: '["http://localhost:8080"]'
+      # Provider auto-selects; set a key in .env to enable LLM feedback.
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+    ports:
+      - "8000:8000"
+    volumes:
+      # The API launches sandbox containers via the host Docker daemon.
+      - /var/run/docker.sock:/var/run/docker.sock
+    depends_on:
+      db:
+        condition: service_healthy
+
+  web:
+    build:
+      context: ./frontend
+    ports:
+      - "8080:80"
+    depends_on:
+      - api
+
+volumes:
+  db-data:

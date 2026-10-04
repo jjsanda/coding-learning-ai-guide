@@ -1,0 +1,129 @@
+# Curated offline ruleset for beginner Python security anti-patterns.
+# The sandbox has no network access, so rules are vendored rather than
+# pulled from the Semgrep registry at scan time.
+rules:
+  - id: py-sqli-fstring
+    languages: [python]
+    severity: ERROR
+    message: >-
+      SQL query built with an f-string. Anything the user typed becomes part
+      of the SQL command itself, which is how SQL injection happens. Pass
+      values separately using query parameters (the second argument of
+      execute).
+    metadata:
+      category: security
+      cwe: "CWE-89"
+    patterns:
+      - pattern-either:
+          - pattern: $CURSOR.execute(f"...", ...)
+          - pattern: $CURSOR.executemany(f"...", ...)
+          - pattern: $CURSOR.executescript(f"...")
+
+  - id: py-sqli-format
+    languages: [python]
+    severity: ERROR
+    message: >-
+      SQL query built with string formatting or concatenation. User input can
+      rewrite the query (SQL injection). Use parameterized queries instead.
+    metadata:
+      category: security
+      cwe: "CWE-89"
+    patterns:
+      - pattern-either:
+          - pattern: $CURSOR.execute("...".format(...), ...)
+          - pattern: $CURSOR.execute("..." % ..., ...)
+          - pattern: $CURSOR.execute("..." + $X, ...)
+          - pattern: $CURSOR.execute($A + $B, ...)
+
+  - id: py-unsafe-pickle
+    languages: [python]
+    severity: ERROR
+    message: >-
+      pickle can execute arbitrary code while loading data. Never unpickle
+      data that came from a user or the network; use JSON for untrusted data.
+    metadata:
+      category: security
+      cwe: "CWE-502"
+    pattern-either:
+      - pattern: pickle.load(...)
+      - pattern: pickle.loads(...)
+
+  - id: py-unsafe-yaml-load
+    languages: [python]
+    severity: ERROR
+    message: >-
+      yaml.load without an explicit safe loader can construct arbitrary Python
+      objects from the document. Use yaml.safe_load instead.
+    metadata:
+      category: security
+      cwe: "CWE-502"
+    patterns:
+      - pattern: yaml.load($DATA)
+
+  - id: py-eval-input
+    languages: [python]
+    severity: ERROR
+    message: >-
+      eval/exec on data turns that data into a program: whoever controls the
+      input controls your process. Parse the value explicitly (e.g. int(),
+      float(), json.loads) instead.
+    metadata:
+      category: security
+      cwe: "CWE-95"
+    pattern-either:
+      - pattern: eval(...)
+      - pattern: exec(...)
+
+  - id: py-subprocess-shell
+    languages: [python]
+    severity: ERROR
+    message: >-
+      shell=True hands the whole string to the system shell, so special
+      characters in user input become shell commands (command injection).
+      Pass an argument list without shell=True.
+    metadata:
+      category: security
+      cwe: "CWE-78"
+    pattern-either:
+      - pattern: subprocess.run(..., shell=True, ...)
+      - pattern: subprocess.call(..., shell=True, ...)
+      - pattern: subprocess.Popen(..., shell=True, ...)
+      - pattern: os.system(...)
+
+  - id: py-hardcoded-password
+    languages: [python]
+    severity: WARNING
+    message: >-
+      A secret written directly in source code ends up in every copy of the
+      repository and can never be rotated quietly. Read secrets from the
+      environment or a configuration file that stays out of version control.
+    metadata:
+      category: security
+      cwe: "CWE-798"
+    patterns:
+      - pattern-either:
+          - pattern: password = "..."
+          - pattern: passwd = "..."
+          - pattern: api_key = "..."
+          - pattern: API_KEY = "..."
+          - pattern: secret = "..."
+          - pattern: SECRET_KEY = "..."
+          - pattern: token = "..."
+      - pattern-not: password = ""
+      - pattern-not: passwd = ""
+      - pattern-not: api_key = ""
+      - pattern-not: API_KEY = ""
+      - pattern-not: secret = ""
+      - pattern-not: SECRET_KEY = ""
+      - pattern-not: token = ""
+
+  - id: py-requests-verify-false
+    languages: [python]
+    severity: WARNING
+    message: >-
+      verify=False disables TLS certificate checking, so the connection can be
+      silently intercepted. Keep certificate verification on.
+    metadata:
+      category: security
+      cwe: "CWE-295"
+    pattern: requests.$METHOD(..., verify=False, ...)

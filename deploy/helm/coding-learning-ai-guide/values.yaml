@@ -1,0 +1,52 @@
+# Default values for coding-learning-ai-guide.
+
+image:
+  registry: ghcr.io/jjsanda
+  pullPolicy: IfNotPresent
+  tag: latest
+
+api:
+  image: coding-learning-ai-guide-api
+  replicas: 1
+  workerConcurrency: 2
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: "1"
+      memory: 512Mi
+  # Set to a secret name to enable LLM feedback; leave empty for template mode.
+  llmSecretName: ""
+
+web:
+  image: coding-learning-ai-guide-web
+  replicas: 1
+
+runners:
+  python: coding-learning-ai-guide-runner-python
+  node: coding-learning-ai-guide-runner-node
+
+sandbox:
+  namespace: clag-sandbox
+  wallTimeoutSeconds: 120
+  activeDeadlineSeconds: 180
+  memoryMb: 512
+  cpus: 1
+  gvisor:
+    # Requires gVisor installed on the nodes and a matching RuntimeClass.
+    enabled: false
+    runtimeClassName: gvisor
+
+postgres:
+  enabled: true
+  image: postgres:16-alpine
+  user: codeguide
+  password: codeguide
+  database: codeguide
+  storage: 1Gi
+
+ingress:
+  enabled: false
+  className: ""
+  host: codeguide.local

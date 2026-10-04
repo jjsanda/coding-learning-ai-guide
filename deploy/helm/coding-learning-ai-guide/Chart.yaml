@@ -1,0 +1,11 @@
+apiVersion: v2
+name: coding-learning-ai-guide
+description: AI code review and formative feedback for programming courses
+type: application
+version: 0.1.0
+appVersion: "0.1.0"
+home: https://github.com/jjsanda/coding-learning-ai-guide
+sources:
+  - https://github.com/jjsanda/coding-learning-ai-guide
+maintainers:
+  - name: Josef Sanda

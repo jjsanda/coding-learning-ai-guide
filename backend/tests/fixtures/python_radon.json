@@ -1,0 +1,7 @@
+{
+  "exit_code": 0,
+  "stdout": "{\"main.py\": [{\"type\": \"function\", \"rank\": \"C\", \"lineno\": 18, \"name\": \"messy\", \"col_offset\": 0, \"complexity\": 13, \"endline\": 42, \"closures\": []}, {\"type\": \"function\", \"rank\": \"A\", \"lineno\": 7, \"name\": \"load_user\", \"col_offset\": 0, \"complexity\": 1, \"endline\": 8, \"closures\": []}, {\"type\": \"function\", \"rank\": \"A\", \"lineno\": 10, \"name\": \"find_user\", \"col_offset\": 0, \"complexity\": 1, \"endline\": 13, \"closures\": []}, {\"type\": \"function\", \"rank\": \"A\", \"lineno\": 15, \"name\": \"ping\", \"col_offset\": 0, \"complexity\": 1, \"endline\": 16, \"closures\": []}, {\"type\": \"function\", \"rank\": \"A\", \"lineno\": 44, \"name\": \"greet\", \"col_offset\": 0, \"complexity\": 1, \"endline\": 46, \"closures\": []}]}\n",
+  "stderr": "",
+  "duration_ms": 177,
+  "timed_out": false
+}

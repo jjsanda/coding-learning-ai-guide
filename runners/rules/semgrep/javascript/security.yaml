@@ -1,0 +1,111 @@
+# Curated offline ruleset for beginner JavaScript security anti-patterns.
+# Vendored because the sandbox has no network access at scan time.
+rules:
+  - id: js-eval
+    languages: [javascript]
+    severity: ERROR
+    message: >-
+      eval turns a string into running code, so whoever controls the string
+      controls your program. Parse data explicitly (JSON.parse, Number, ...)
+      instead of evaluating it.
+    metadata:
+      category: security
+      cwe: "CWE-95"
+    pattern-either:
+      - pattern: eval(...)
+      - pattern: new Function(...)
+
+  - id: js-child-process-injection
+    languages: [javascript]
+    severity: ERROR
+    message: >-
+      Building a shell command from variables lets special characters in the
+      input become commands of their own (command injection). Use execFile
+      with an argument array instead of exec with a concatenated string.
+    metadata:
+      category: security
+      cwe: "CWE-78"
+    pattern-either:
+      - pattern: $CP.exec(`...${...}...`, ...)
+      - pattern: $CP.exec($CMD + $X, ...)
+      - pattern: $CP.execSync(`...${...}...`, ...)
+      - pattern: $CP.execSync($CMD + $X, ...)
+
+  - id: js-sqli-template
+    languages: [javascript]
+    severity: ERROR
+    message: >-
+      SQL query built with a template literal or concatenation. User input
+      becomes part of the SQL itself (SQL injection). Use parameterized
+      queries (placeholders) instead.
+    metadata:
+      category: security
+      cwe: "CWE-89"
+    pattern-either:
+      - pattern: $DB.query(`...${...}...`, ...)
+      - pattern: $DB.query($SQL + $X, ...)
+      - pattern: $DB.run(`...${...}...`, ...)
+      - pattern: $DB.run($SQL + $X, ...)
+      - pattern: $DB.all(`...${...}...`, ...)
+      - pattern: $DB.get(`...${...}...`, ...)
+
+  - id: js-inner-html
+    languages: [javascript]
+    severity: WARNING
+    message: >-
+      Assigning to innerHTML injects raw markup into the page. If any part of
+      the string came from a user, they can inject scripts (XSS). Use
+      textContent for text, or build elements explicitly.
+    metadata:
+      category: security
+      cwe: "CWE-79"
+    pattern-either:
+      - pattern: $EL.innerHTML = $X
+      - pattern: $EL.outerHTML = $X
+      - pattern: document.write(...)
+
+  - id: js-hardcoded-secret
+    languages: [javascript]
+    severity: WARNING
+    message: >-
+      A secret written directly in source code ends up in every copy of the
+      repository and can never be rotated quietly. Read secrets from
+      environment variables or a configuration file kept out of version
+      control.
+    metadata:
+      category: security
+      cwe: "CWE-798"
+    patterns:
+      - pattern-either:
+          - pattern: const password = "..."
+          - pattern: let password = "..."
+          - pattern: var password = "..."
+          - pattern: const apiKey = "..."
+          - pattern: let apiKey = "..."
+          - pattern: const API_KEY = "..."
+          - pattern: const secret = "..."
+          - pattern: let secret = "..."
+          - pattern: const token = "..."
+      - pattern-not: const password = ""
+      - pattern-not: let password = ""
+      - pattern-not: var password = ""
+      - pattern-not: const apiKey = ""
+      - pattern-not: let apiKey = ""
+      - pattern-not: const API_KEY = ""
+      - pattern-not: const secret = ""
+      - pattern-not: let secret = ""
+      - pattern-not: const token = ""
+
+  - id: js-insecure-random-for-secrets
+    languages: [javascript]
+    severity: INFO
+    message: >-
+      Math.random is predictable and must not be used for anything
+      security-related (tokens, passwords, session IDs). Use
+      crypto.randomBytes or crypto.getRandomValues.
+    metadata:
+      category: security
+      cwe: "CWE-338"
+    pattern-either:
+      - pattern: |
+          $TOKEN = Math.random().toString(36)

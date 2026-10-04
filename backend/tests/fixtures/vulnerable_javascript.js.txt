@@ -1,0 +1,32 @@
+const password = "hunter2";
+const db = require('./db');
+
+function findUser(name) {
+  return db.query(`SELECT * FROM users WHERE name = '${name}'`);
+}
+
+function run(cmd) {
+  const cp = require('child_process');
+  cp.execSync("ping -c 1 " + cmd);
+}
+
+function calc(expr) {
+  return eval(expr);
+}
+
+function messy(a, b, c, d) {
+  if (a == "1") {
+    if (b) { if (c) { if (d) { return 1 } else { return 2 } } else { return 3 } }
+    else if (c && d) { return 4 }
+    else { return 5 }
+  } else if (b || c) {
+    var total = 0;
+    for (var i = 0; i < 10; i++) {
+      if (i % 2) { total += i } else if (i % 3) { total -= i }
+    }
+    return total;
+  }
+  return undefinedVariable;
+}
+
+console.log(findUser('x'), calc('1'), messy(1,2,3,4), run('x'));

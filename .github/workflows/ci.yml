@@ -1,0 +1,117 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+      - name: Set up Python
+        run: uv python install 3.12
+      - name: Install dependencies
+        run: uv venv .venv && uv pip install -p .venv -e ".[dev]"
+      - name: Ruff
+        run: .venv/bin/ruff check src tests
+      - name: Mypy
+        run: .venv/bin/mypy
+      - name: Unit tests
+        run: .venv/bin/pytest --cov=codeguide --cov-report=term-missing
+
+  frontend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci
+      - name: Lint
+        run: npm run lint
+      - name: Type-check and build
+        run: npm run build
+      - name: Unit tests
+        run: npm test
+
+  security:
+    runs-on: ubuntu-latest
+    # Repo-hygiene scans; informational, they should not block a merge.
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - name: Bandit (backend source)
+        uses: astral-sh/setup-uv@v5
+      - run: uvx bandit -r backend/src -q
+      - name: Semgrep
+        run: uvx semgrep scan --config auto --error --metrics=off backend/src
+      - name: Gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Trivy filesystem (dependency CVEs)
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          scan-type: fs
+          scan-ref: .
+          severity: HIGH,CRITICAL
+          ignore-unfixed: true
+
+  images:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build all images
+        run: |
+          docker build -t clag-api backend
+          docker build -t clag-web frontend
+          docker build -t clag-runner-python -f runners/python/Dockerfile runners
+          docker build -t clag-runner-node -f runners/node/Dockerfile runners
+
+  integration:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build runner images
+        run: make runners
+      - name: Start the stack
+        run: DOCKER_GID=$(stat -c '%g' /var/run/docker.sock) docker compose up -d --build --wait
+      - name: Seed and smoke test
+        run: |
+          JOIN=$(docker compose exec -T api python -m codeguide.cli seed \
+            | grep -E '^  [A-Z0-9]{8}   ' | head -1 | awk '{print $1}')
+          bash scripts/smoke.sh http://localhost:8080 "$JOIN"
+      - name: Dump logs on failure
+        if: failure()
+        run: docker compose logs
+
+  helm:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: azure/setup-helm@v4
+      - name: Helm lint
+        run: helm lint deploy/helm/coding-learning-ai-guide
+      - name: Validate manifests
+        run: |
+          curl -sSLo /usr/local/bin/kubeconform.tar.gz \
+            https://github.com/yannh/kubeconform/releases/latest/download/kubeconform-linux-amd64.tar.gz
+          tar -xzf /usr/local/bin/kubeconform.tar.gz -C /usr/local/bin kubeconform
+          helm template test deploy/helm/coding-learning-ai-guide \
+            | kubeconform -strict -summary -ignore-missing-schemas

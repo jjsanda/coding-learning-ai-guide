@@ -1,0 +1,78 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+coverage.xml
+htmlcov/
+# hatchling build output (`python -m build` / `uv build` in backend/)
+backend/dist/
+backend/build/
+
+# Node
+node_modules/
+frontend/dist/
+*.tsbuildinfo
+
+# Playwright
+frontend/test-results/
+frontend/playwright-report/
+frontend/blob-report/
+frontend/playwright/.cache/
+frontend/playwright/.auth/
+
+# Logs
+*.log
+
+# Data & local state
+# The default SQLite DB is ./data/app.db relative to the working directory:
+# backend/data/ for `make dev`, the repo root if the API is started from there.
+# Anchored so source folders that happen to be named `data` elsewhere
+# (e.g. frontend/src/data) are not swallowed.
+/data/
+/backend/data/
+*.db
+*.db-journal
+*.db-shm
+*.db-wal
+*.sqlite
+*.sqlite3
+
+# Secrets & local config (.env.example is the committed template)
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+# Compose auto-loads any of docker-compose.override.{yml,yaml} / compose.override.{yml,yaml};
+# this is where API keys or extra api env vars tend to get inlined.
+*compose.override.y*ml
+
+# Helm (`helm package` / `helm dependency update` output)
+*.tgz
+deploy/helm/*/charts/
+# Local Helm values (e.g. a non-demo postgres.password) and exported Secrets
+values.local.y*ml
+values-local.y*ml
+*.secret.y*ml
+
+# Editors / OS
+.idea/
+# `**/` because a pattern with a mid-path slash only matches at the repo root,
+# and backend/ is a natural VS Code workspace root.
+**/.vscode/*
+!**/.vscode/extensions.json
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# Claude Code (per-user)
+**/.claude/settings.local.json
+CLAUDE.local.md

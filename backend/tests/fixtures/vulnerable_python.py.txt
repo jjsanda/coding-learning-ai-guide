@@ -1,0 +1,46 @@
+import pickle
+import sqlite3
+import subprocess
+
+password = "hunter2"
+
+def load_user(data):
+    return pickle.loads(data)
+
+def find_user(conn, name):
+    cur = conn.cursor()
+    cur.execute(f"SELECT * FROM users WHERE name = '{name}'")
+    return cur.fetchall()
+
+def ping(host):
+    subprocess.run("ping -c 1 " + host, shell=True)
+
+def messy(a, b, c, d):
+    if a:
+        if b:
+            if c:
+                if d:
+                    return 1
+                else:
+                    return 2
+            elif d:
+                return 3
+            else:
+                return 4
+        elif c and d:
+            return 5
+        else:
+            return 6
+    elif b or c:
+        for i in range(10):
+            if i % 2:
+                d += i
+            elif i % 3:
+                d -= i
+        return d
+    else:
+        return eval(input())
+
+def greet(name, seen=[]):
+    seen.append(name)
+    print(unknown_variable)
