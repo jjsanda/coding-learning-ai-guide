@@ -137,12 +137,12 @@ The trust boundary is the whole point. Here's how one finding flows through:
 
 ```mermaid
 flowchart LR
-    code["cur.execute(f&quot;... '{name}'&quot;)"] --> analyzer[Bandit / Semgrep]
+    code["cur.execute(f#quot;... '{name}'#quot;)"] --> analyzer[Bandit / Semgrep]
     analyzer -->|"rule B608"| finding[Finding: possible SQL injection<br/>main.py, line 12]
     finding -->|deterministic map| tag[Misconception:<br/>Building SQL from user input]
     tag --> dash[Class dashboard counts this]
     finding --> llm[LLM / template]
-    llm -->|grounded in the finding| explain[&quot;Anything the user types becomes<br/>part of the SQL command…<br/>How could you pass it as data instead?&quot;]
+    llm -->|grounded in the finding| explain["#quot;Anything the user types becomes<br/>part of the SQL command…<br/>How could you pass it as data instead?#quot;"]
 
     style finding fill:#dbeafe,stroke:#3b82f6
     style tag fill:#dcfce7,stroke:#10b981
