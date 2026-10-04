@@ -18,7 +18,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Install uv
-        uses: astral-sh/setup-uv@v5
+        uses: astral-sh/setup-uv@v7
       - name: Set up Python
         run: uv python install 3.12
       - name: Install dependencies
@@ -57,7 +57,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Bandit (backend source)
-        uses: astral-sh/setup-uv@v5
+        uses: astral-sh/setup-uv@v7
       - run: uvx bandit -r backend/src -q
       - name: Semgrep
         run: uvx semgrep scan --config auto --error --metrics=off backend/src
