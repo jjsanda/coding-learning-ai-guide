@@ -16,7 +16,7 @@ jobs:
       run:
         working-directory: backend
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Install uv
         uses: astral-sh/setup-uv@v5
       - name: Set up Python
@@ -36,7 +36,7 @@ jobs:
       run:
         working-directory: frontend
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: actions/setup-node@v4
         with:
           node-version: 22
@@ -55,7 +55,7 @@ jobs:
     # Repo-hygiene scans; informational, they should not block a merge.
     continue-on-error: true
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Bandit (backend source)
         uses: astral-sh/setup-uv@v5
       - run: uvx bandit -r backend/src -q
@@ -76,7 +76,7 @@ jobs:
   images:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Build all images
         run: |
           docker build -t clag-api backend
@@ -87,7 +87,7 @@ jobs:
   integration:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Build runner images
         run: make runners
       - name: Start the stack
@@ -104,7 +104,7 @@ jobs:
   helm:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: azure/setup-helm@v4
       - name: Helm lint
         run: helm lint deploy/helm/coding-learning-ai-guide
